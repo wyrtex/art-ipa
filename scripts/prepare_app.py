@@ -4,9 +4,13 @@
 Usage: prepare_app.py <checkout-dir> <app> <art-ipa-root>
 
 1. Points `rfd` and `arboard` at the iOS-capable copies in `shims/` ([patch.crates-io]).
-2. Adds the `craft-ios` start-up crate to `apps/<app>` and calls `craft_ios::init()` first thing
+2. Excludes iOS from the apps' "desktop Unix that is not macOS" (Linux/BSD) branches:
+   `all(unix, not(target_os = "macos"))` becomes `all(unix, not(any(target_os = "macos",
+   target_os = "ios")))` in the workspace's Rust sources and manifests (outside `vendor/`).
+   Otherwise iOS (also `unix`) pulls in X11/Wayland/glutin code and crates.
+3. Adds the `craft-ios` start-up crate to `apps/<app>` and calls `craft_ios::init()` first thing
    in its `main`.
-3. Applies `patches/<app>/*.patch` (if any), in name order.
+4. Applies `patches/<app>/*.patch` (if any), in name order.
 
 Idempotent: running it twice on the same checkout changes nothing the second time.
 """
@@ -24,6 +28,7 @@ def main() -> None:
     root = os.path.abspath(root)
     shims = os.path.join(root, "shims")
     patch_workspace(checkout, shims, ["rfd", "arboard"])
+    exclude_ios_from_linux_cfgs(checkout)
     add_ios_dependency(os.path.join(checkout, "apps", app, "Cargo.toml"), os.path.join(shims, "craft-ios"))
     call_init(os.path.join(checkout, "apps", app, "src", "main.rs"))
     for patch in sorted(glob.glob(os.path.join(root, "patches", app, "*.patch"))):
@@ -52,6 +57,33 @@ def patch_workspace(checkout: str, shims: str, crates: list) -> None:
     else:
         text = text[: m.start(1)] + "\n".join(lines) + "\n" + text[m.start(1):]
     write(path, text)
+
+
+CFG_REWRITES = [
+    ('unix, not(target_os = "macos")', 'unix, not(any(target_os = "macos", target_os = "ios"))'),
+    ('unix, not(target_os="macos")', 'unix, not(any(target_os="macos", target_os="ios"))'),
+    ('unix, not(any(target_os = "macos", target_os = "android"', 'unix, not(any(target_os = "macos", target_os = "ios", target_os = "android"'),
+    ('unix, any(not(target_os = "macos"), test)', 'unix, any(not(any(target_os = "macos", target_os = "ios")), test)'),
+]
+
+
+def exclude_ios_from_linux_cfgs(checkout: str) -> None:
+    changed = 0
+    for dirpath, dirnames, filenames in os.walk(checkout):
+        dirnames[:] = [d for d in dirnames if d not in ("target", "vendor", ".git", "node_modules")]
+        for name in filenames:
+            if not (name.endswith(".rs") or name == "Cargo.toml"):
+                continue
+            path = os.path.join(dirpath, name)
+            text = read(path)
+            new = text
+            for old, repl in CFG_REWRITES:
+                new = new.replace(old, repl)
+            if new != text:
+                write(path, new)
+                changed += 1
+    if changed:
+        print(f"excluded iOS from Linux-only cfgs in {changed} files")
 
 
 def add_ios_dependency(manifest: str, crate_dir: str) -> None:

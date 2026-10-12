@@ -30,6 +30,9 @@
 2. **`arboard` (буфер обмена)** на iOS подхватывал Linux/Wayland-бэкенд и не компилировался. В `shims/arboard` добавлен бэкенд на `UIPasteboard`: текст, HTML и картинки PNG.
 3. **Пути к настройкам.** Десктопный код на iOS идёт по «Linux»-ветке и пишет в `~/.config`, а в песочнице iOS туда писать нельзя. Крейт `shims/craft-ios` при запуске направляет `XDG_*` в `Library/Application Support` и `Library/Caches`, а рабочей папкой делает `Documents`.
 
+4. **Ветки «Linux-десктоп».** Приложения пишут `cfg(all(unix, not(target_os = "macos")))`, имея в виду Linux, но под это условие попадает и iOS — и тянет за собой X11/Wayland. `prepare_app.py` переписывает такие условия, чтобы они исключали iOS.
+5. **OpenGL (`glow`).** LightCraft и PdfCraft используют OpenGL как запасной рендерер, а на iOS его нет. Патчи в `patches/lightcraft` и `patches/pdfcraft` оставляют на iOS только Metal (через wgpu).
+
 Скрипт `scripts/prepare_app.py` подключает шимы через `[patch.crates-io]`, добавляет в `main()` вызов `craft_ios::init()` и применяет патчи из `patches/<app>/*.patch`, если они есть. Затем `scripts/build-ipa.sh` собирает бинарник под `aarch64-apple-ios`, а `scripts/make_bundle.py` собирает `.app` (Info.plist, иконки) и упаковывает его в `.ipa`.
 
 ## Где взять .ipa

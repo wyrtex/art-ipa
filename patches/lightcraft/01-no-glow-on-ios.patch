@@ -1,0 +1,61 @@
+diff --git a/apps/lightcraft/Cargo.toml b/apps/lightcraft/Cargo.toml
+index 54af54c..1836b42 100644
+--- a/apps/lightcraft/Cargo.toml
++++ b/apps/lightcraft/Cargo.toml
+@@ -23,13 +23,17 @@ lightcraft-sysmem = { workspace = true }
+ lightcraft-ui-egui = { workspace = true }
+ lightcraft-codecs = { workspace = true }
+ lightcraft-raster = { workspace = true }
+-eframe = { workspace = true, features = ["default_fonts", "wgpu", "glow", "accesskit", "wayland", "x11"] }
++eframe = { workspace = true, features = ["default_fonts", "wgpu", "accesskit", "wayland", "x11"] }
+ egui = { workspace = true }
+ serde_json = { workspace = true }
+ # probing the window's renderer before it opens (`window_gpu`)
+ pollster = { workspace = true }
+ log = { workspace = true }
+ 
++# iOS has no OpenGL for eframe's glow renderer (glutin has no backend there); Metal via wgpu only.
++[target.'cfg(not(target_os = "ios"))'.dependencies]
++eframe = { workspace = true, features = ["glow"] }
++
+ [build-dependencies]
+ # Icon + VERSIONINFO for lightcraft.exe; build.rs only uses it when targeting Windows.
+ winresource = "0.1"
+diff --git a/apps/lightcraft/src/main.rs b/apps/lightcraft/src/main.rs
+index b8c77f6..7443a4c 100644
+--- a/apps/lightcraft/src/main.rs
++++ b/apps/lightcraft/src/main.rs
+@@ -76,7 +76,18 @@ impl eframe::App for App {
+     fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
+         self.0.ui(ui);
+     }
++    #[cfg(not(target_os = "ios"))]
+     fn on_exit(&mut self, _gl: Option<&eframe::glow::Context>) {
++        self.exit();
++    }
++    #[cfg(target_os = "ios")]
++    fn on_exit(&mut self) {
++        self.exit();
++    }
++}
++
++impl App {
++    fn exit(&mut self) {
+         if let Err(e) = self.1.save(&self.0) {
+             log::error!("{e}");
+         }
+diff --git a/apps/lightcraft/src/window_gpu.rs b/apps/lightcraft/src/window_gpu.rs
+index 66e5a78..8a06c83 100644
+--- a/apps/lightcraft/src/window_gpu.rs
++++ b/apps/lightcraft/src/window_gpu.rs
+@@ -119,7 +119,10 @@ pub fn choose(files: &Files) -> Chosen {
+     log::info!("window: renderer {} (order {:?})", which.name(), order.iter().map(|r| r.name()).collect::<Vec<_>>());
+     let mut wgpu_options = base_options();
+     let renderer = match (which, existing) {
++        #[cfg(not(target_os = "ios"))]
+         (WindowRenderer::Glow, _) => eframe::Renderer::Glow,
++        #[cfg(target_os = "ios")]
++        (WindowRenderer::Glow, _) => eframe::Renderer::Wgpu,
+         (WindowRenderer::Wgpu(_), Some(e)) => {
+             wgpu_options.wgpu_setup = WgpuSetup::Existing(e);
+             eframe::Renderer::Wgpu

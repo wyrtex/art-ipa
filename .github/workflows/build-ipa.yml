@@ -1,0 +1,93 @@
+name: Build IPAs
+
+on:
+  push:
+    branches: ["**"]
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      apps:
+        description: "Space-separated app ids from apps.json (empty = all)"
+        required: false
+        default: ""
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      apps: ${{ steps.list.outputs.apps }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: list
+        env:
+          WANTED: ${{ github.event.inputs.apps }}
+        run: |
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import json, os
+          ids = [a["id"] for a in json.load(open("apps.json"))["apps"]]
+          wanted = os.environ.get("WANTED", "").split()
+          unknown = [w for w in wanted if w not in ids]
+          if unknown:
+              raise SystemExit(f"unknown app ids: {unknown}")
+          print("apps=" + json.dumps(wanted or ids))
+          PY
+
+  build:
+    needs: matrix
+    runs-on: macos-15
+    timeout-minutes: 240
+    strategy:
+      fail-fast: false
+      matrix:
+        app: ${{ fromJson(needs.matrix.outputs.apps) }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Rust toolchain
+        run: |
+          rustup update stable --no-self-update
+          rustup default stable
+          rustup target add aarch64-apple-ios
+          rustc --version
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry/index
+            ~/.cargo/registry/cache
+            ~/.cargo/git/db
+            build/${{ matrix.app }}/target
+          key: ${{ matrix.app }}-${{ hashFiles('apps.json', 'shims/**', 'patches/**', 'scripts/prepare_app.py') }}
+          restore-keys: ${{ matrix.app }}-
+
+      - name: Build ${{ matrix.app }}.ipa
+        run: scripts/build-ipa.sh "${{ matrix.app }}" dist
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.app }}-ipa
+          path: dist/*.ipa
+          if-no-files-found: error
+
+  release:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v') && !cancelled()
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*.ipa
+          fail_on_unmatched_files: true
+          body: |
+            Unsigned iOS / iPadOS builds of the ArtCraft Crafting Apps.
+            Install with AltStore, SideStore, Sideloadly or TrollStore (they sign the .ipa with your Apple ID).

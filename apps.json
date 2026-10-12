@@ -1,0 +1,17 @@
+{
+  "_comment": "ArtCraft Crafting Apps (github.com/storytold) built as iOS / iPadOS .ipa files. `rev` pins the upstream commit each build uses; bump it to pick up new upstream work.",
+  "apps": [
+    { "id": "photocraft",  "name": "PhotoCraft",  "repo": "storytold/photocraft",  "rev": "d43db3e153c76aefce9b32cef9099e458eaf17a8" },
+    { "id": "filmcraft",   "name": "FilmCraft",   "repo": "storytold/filmcraft",   "rev": "71438c627b5cbcfb550526c3971f4d0037733c5c" },
+    { "id": "lightcraft",  "name": "LightCraft",  "repo": "storytold/lightcraft",  "rev": "701f78ea2e586d4748705f10fdf5c4181dc1fd49" },
+    { "id": "pdfcraft",    "name": "PdfCraft",    "repo": "storytold/pdfcraft",    "rev": "7163ba3dee8becfff6871c9a65d0d8314314742b" },
+    { "id": "wordcraft",   "name": "WordCraft",   "repo": "storytold/wordcraft",   "rev": "159b84f54c74e9e82fb3109b758ae7dd6f4e3ab0" },
+    { "id": "vectorcraft", "name": "VectorCraft", "repo": "storytold/vectorcraft", "rev": "e74cb01ecc2858fa5b8c07fcc04952e9ab64f47f" },
+    { "id": "effectcraft", "name": "EffectCraft", "repo": "storytold/effectcraft", "rev": "470ea7a3af82ee1dd1d2f86c777fe6891bd0c37b" },
+    { "id": "gridcraft",   "name": "GridCraft",   "repo": "storytold/gridcraft",   "rev": "fc45b7f6d8ab79ef20f74e3c8347a2fd731e6af5" },
+    { "id": "cadcraft",    "name": "CADCraft",    "repo": "storytold/cadcraft",    "rev": "00c7613f1af3c73f7157fa91d9fe2635c6f23c06" },
+    { "id": "designcraft", "name": "DesignCraft", "repo": "storytold/designcraft", "rev": "17cf5b4e91ebf0db0314e90fc4c4d8b4d7826c3d" },
+    { "id": "deckcraft",   "name": "DeckCraft",   "repo": "storytold/deckcraft",   "rev": "688c7ef592c901ca4541c25e210c1b302e4dc066" },
+    { "id": "soundcraft",  "name": "SoundCraft",  "repo": "storytold/soundcraft",  "rev": "6cf896e76c0ec82a11bf2494f209cfe7c8507f74" }
+  ]
+}

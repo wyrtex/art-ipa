@@ -3,7 +3,7 @@
 
 Usage: prepare_app.py <checkout-dir> <app> <art-ipa-root>
 
-1. Points `rfd` and `arboard` at the iOS-capable copies in `shims/` ([patch.crates-io]).
+1. Points `rfd`, `arboard` and `egui-winit` at the iOS-capable copies in `shims/` ([patch.crates-io]).
 2. Excludes iOS from the apps' "desktop Unix that is not macOS" (Linux/BSD) branches:
    `all(unix, not(target_os = "macos"))` becomes `all(unix, not(any(target_os = "macos",
    target_os = "ios")))` in the workspace's Rust sources and manifests (outside `vendor/`).
@@ -27,7 +27,7 @@ def main() -> None:
     checkout, app, root = sys.argv[1:]
     root = os.path.abspath(root)
     shims = os.path.join(root, "shims")
-    patch_workspace(checkout, shims, ["rfd", "arboard"])
+    patch_workspace(checkout, shims, ["rfd", "arboard", "egui-winit"])
     exclude_ios_from_linux_cfgs(checkout)
     add_ios_dependency(os.path.join(checkout, "apps", app, "Cargo.toml"), os.path.join(shims, "craft-ios"))
     call_init(os.path.join(checkout, "apps", app, "src", "main.rs"))

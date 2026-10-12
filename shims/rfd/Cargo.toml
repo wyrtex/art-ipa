@@ -202,6 +202,9 @@ features = [
 ]
 default-features = false
 
+[target.'cfg(target_os = "ios")'.dependencies.craft-ios]
+path = "../craft-ios"
+
 [target.'cfg(target_os = "ios")'.dependencies.block2]
 version = "0.6.0"
 

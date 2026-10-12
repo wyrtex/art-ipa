@@ -85,10 +85,10 @@ def info_plist(app_id: str, name: str, version: str) -> dict:
         "UIRequiresFullScreen": True,
         "UIStatusBarHidden": True,
         "UIViewControllerBasedStatusBarAppearance": False,
+        # Desktop layouts don't fit a phone held upright: landscape only on iPhone.
         "UISupportedInterfaceOrientations": [
-            "UIInterfaceOrientationLandscapeLeft",
             "UIInterfaceOrientationLandscapeRight",
-            "UIInterfaceOrientationPortrait",
+            "UIInterfaceOrientationLandscapeLeft",
         ],
         "UISupportedInterfaceOrientations~ipad": [
             "UIInterfaceOrientationLandscapeLeft",

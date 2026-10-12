@@ -1,0 +1,13 @@
+diff --git a/apps/wordcraft/src/animations.rs b/apps/wordcraft/src/animations.rs
+index 96b67af..e2671ef 100644
+--- a/apps/wordcraft/src/animations.rs
++++ b/apps/wordcraft/src/animations.rs
+@@ -25,7 +25,7 @@ pub fn hook(ctx: &egui::Context) -> Box<dyn Fn() -> Option<bool>> {
+     {
+         Box::new(desktop::watch(ctx.clone()))
+     }
+-    #[cfg(not(any(target_os = "windows", unix)))]
++    #[cfg(any(target_os = "ios", not(any(target_os = "windows", unix))))]
+     {
+         let _ = ctx;
+         Box::new(|| None)

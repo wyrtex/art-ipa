@@ -4,7 +4,10 @@ fn main() {
 
     match (target_arch.as_str(), target_os.as_str()) {
         (_, "macos") => println!("cargo:rustc-link-lib=framework=AppKit"),
-        (_, "ios") => println!("cargo:rustc-link-lib=framework=UIKit"),
+        (_, "ios") => {
+            println!("cargo:rustc-link-lib=framework=UIKit");
+            println!("cargo:rustc-link-lib=framework=PhotosUI");
+        }
         (_, "windows") => {}
         ("wasm32", _) => {}
         _ => {

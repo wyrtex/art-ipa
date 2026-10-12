@@ -89,12 +89,13 @@ pub fn set_waker(wake: Box<dyn Fn() + Send + Sync>) {
 // Fitting desktop UIs on a phone / tablet screen
 // ---------------------------------------------------------------------------------------------
 
-/// The Craft apps are laid out for desktop windows of 1100+ points. On screens narrower than
-/// this (after the safe area), the UI is drawn at a smaller scale so that much fits.
-pub const MIN_LOGICAL_WIDTH: f32 = 1024.0;
+/// The Craft apps are laid out for desktop windows of 1280+ points (their menu bars and
+/// toolbars overlap below that). On screens narrower than this (after the safe area), the UI is
+/// drawn at a smaller scale so that much fits.
+pub const MIN_LOGICAL_WIDTH: f32 = 1280.0;
 
 /// Smallest scale applied, so text stays readable on the smallest phones.
-pub const MIN_UI_SCALE: f32 = 0.62;
+pub const MIN_UI_SCALE: f32 = 0.58;
 
 /// The factor to multiply the display's scale with, for a window `long_side_points` wide (its
 /// longer side, in UIKit points, minus the safe area). `ART_IPA_UI_SCALE` overrides it.
